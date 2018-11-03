@@ -1,0 +1,168 @@
+// This is an unwinnable, but not fully locked structure
+structure Unwinnable_6by1 : RushHourVoc_fixed {
+    Time = { 0..3 }
+    
+    XCo = { 1..6 }
+    YCo = { 1 }
+    Size = { 1..3 }
+    Distance = { 0..5 }
+    
+    Car = {green}
+    Obstacle = {pole}
+    
+    Init_Pos = {green-> P(1,1);pole -> P(4,1)}
+    
+    GetSize = {green-> 2}
+    GetOrientation = {green-> Hor()}
+    Goal = {green,P(5,1)}
+    
+    GetWidth = {pole-> 1}
+    GetHeight = {pole-> 1}   
+    
+    GetColor = {green -> Green()}
+}
+
+
+structure Easy_3by3 : RushHourVoc_fixed {
+    Time = { 0..3 }
+    
+    XCo = { 1..3 }
+    YCo = { 1..3 }
+    Size = { 1..3 }
+    Distance = { 0..3 }
+    
+    Car = {red;green}
+    Obstacle = {pole}
+    
+    Init_Pos = {red-> P(1,3); green-> P(1,1); pole-> P(3,3)}
+    
+    GetSize = {red-> 2; green-> 2}
+    GetOrientation = {red-> Vert(); green-> Hor()}
+    Goal = {red,P(1,2)}
+    
+    GetWidth = {pole-> 1}
+    GetHeight = {pole-> 1}
+    GetColor = {red -> Red(); green -> Green()}
+}
+
+// This is a fully locked structure, used to test one case of EndGame
+structure Blocked_3by3 : RushHourVoc_fixed {
+    Time = { 0..3 }
+    
+    XCo = { 1..3 }
+    YCo = { 1..3 }
+    Size = { 1..3 }
+    Distance = { 0..3 }
+    
+    Car = {red;green;blue}
+    Obstacle = {pole}
+    
+    Init_Pos = {red-> P(1,3); green-> P(1,1); blue -> P(3,2); pole-> P(3,3)}
+    
+    GetSize = {red-> 2; green-> 2; blue-> 2}
+    GetOrientation = {red-> Vert(); green-> Hor(); blue -> Vert()}
+    Goal = {red,P(1,2)}
+    
+    GetWidth = {pole-> 1}
+    GetHeight = {pole-> 1}    
+    
+    GetColor = {red -> Red(); green -> Green(); blue -> Blue()}
+}
+
+
+structure In4Moves_4by4 : RushHourVoc_fixed {
+    Time = { 0..5 }
+    
+    XCo = { 1..4 }
+    YCo = { 1..4 }
+    Size = { 1..3 }
+    Distance = { 0..3 }
+    
+    Car = {red;green;yellow; blue}
+    Obstacle = {}
+    
+    Init_Pos = {red-> P(1,4); green-> P(3,4); yellow-> P(4,4); blue -> P(3,1)}
+    
+    GetSize = {red-> 2; blue-> 2; yellow-> 3; green-> 3}
+    GetOrientation = {red-> Hor(); green-> Vert(); yellow-> Vert(); blue -> Hor()}
+    Goal = {red,P(3,4)}
+    
+    GetWidth = {}
+    GetHeight = {}    
+    
+    GetColor = {red -> Red(); green -> Green();blue->Blue();yellow-> Yellow()}
+}
+
+
+//The hardest 4x4 puzzle in Rush Hour
+structure Hardest4_4by4 : RushHourVoc_fixed {
+    Time = { 0..5 }
+    
+    XCo = { 1..4 }
+    YCo = { 1..4 }
+    Size = { 1..3 }
+    Distance = { 0..3 }
+    
+    Car = {red;green;yellow;purple;blue}
+    Obstacle = {bushes}
+    
+    Init_Pos = {red-> P(1,2); green-> P(3,2); yellow-> P(3,4); blue -> P(3,3); purple -> P(4,2);bushes -> P(1,1)}
+    
+    GetSize = {red-> 2; purple-> 2; yellow-> 2; green-> 2; blue-> 2 }
+    GetOrientation = {red-> Hor(); green-> Vert(); yellow-> Hor(); blue -> Hor(); purple -> Vert()}
+    Goal = {red,P(3,2); yellow,P(1,4)}
+    
+    GetWidth = {bushes -> 2}
+    GetHeight = {bushes -> 1}    
+    
+    GetColor = {red -> Red(); green -> Green();blue->Blue();yellow-> Yellow();purple -> Purple()}
+}
+
+structure GoalsTimes3_5by5 : RushHourVoc_fixed {
+    Time = { 0..8 }
+    
+    XCo = { 1..5 }
+    YCo = { 1..5 }
+    Size = { 1..3 }
+    Distance = { 0..4 }
+    
+    Car = {red;green;yellow;purple;blue1;blue2;orange}
+    Obstacle = {bushes}
+    
+    Init_Pos = {red-> P(1,5); green-> P(3,3); yellow-> P(2,5); blue1 -> P(4,5);blue2 -> P(2,4); purple -> P(1,1);bushes -> P(4,2); orange -> P(1,2)}
+    
+    GetSize = {red-> 3; purple-> 2; yellow-> 2; green-> 2; blue1-> 1;orange-> 2;blue2-> 2 }
+    GetOrientation = {red-> Vert(); green-> Vert(); yellow-> Hor(); blue2 -> Hor();blue1 -> Vert(); purple -> Hor();orange -> Hor()}
+    Goal = {red,P(1,3); yellow,P(1,5);purple,P(3,1)}
+    
+    GetWidth = {bushes -> 2}
+    GetHeight = {bushes -> 1}    
+    
+    GetColor = {red -> Red(); green -> Green();blue1->Blue();blue2->Blue();yellow-> Yellow();purple -> Purple();orange->Orange()}
+}
+
+
+// This instance is solvable in 8 moves
+// WARNING: This will take some time to visualize
+structure Easy_6by6 : RushHourVoc_fixed {
+    Time = { 0..8 }
+    
+    XCo = { 1..6 }
+    YCo = { 1..6 }
+    Size = { 1..3 }
+    Distance = { 0..5 }
+    
+    Car = {yellow;red;purple;blue;green1;green2;green3;green4}
+    Obstacle = {}
+    
+    Init_Pos = {yellow-> P(1,2);red-> P(3,3);purple-> P(5,1);blue-> P(5,6);green1-> P(1,6);green2-> P(2,4);green3-> P(6,5);green4-> P(2,1)}
+    
+    GetSize = {yellow-> 2;red->2;purple->2;blue->2;green1-> 3;green2-> 3;green3-> 3;green4-> 3}
+    GetOrientation = {yellow-> Vert();red->Vert();purple->Hor();blue->Vert();green1-> Hor();green2-> Hor();green3-> Vert();green4-> Hor()}
+    Goal = {red,P(3,6)}
+    
+    GetWidth = {}
+    GetHeight = {}    
+    
+    GetColor = {yellow-> Yellow();red->Red();purple->Purple();blue->Blue();green1-> Green();green2-> Green();green3-> Green();green4-> Green()}
+}

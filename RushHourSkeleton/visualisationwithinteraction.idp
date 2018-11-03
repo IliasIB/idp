@@ -1,0 +1,510 @@
+include "idpd3/idpd3_voc.idp"
+
+vocabulary V_d3 {
+    extern vocabulary RushHourVoc_action_ss
+    extern vocabulary idpd3::V_types
+    
+    extern RushHourVoc_fixed::P/2:1
+    extern RushHourVoc_fixed::M/3:1
+    extern RushHourVoc_fixed::Up/0:1
+    extern RushHourVoc_fixed::Right/0:1
+    extern RushHourVoc_fixed::Down/0:1
+    extern RushHourVoc_fixed::Left/0:1
+    extern RushHourVoc_fixed::Red/0:1
+    extern RushHourVoc_fixed::Orange/0:1
+    extern RushHourVoc_fixed::Yellow/0:1
+    extern RushHourVoc_fixed::Green/0:1
+    extern RushHourVoc_fixed::Blue/0:1
+    extern RushHourVoc_fixed::Purple/0:1
+    extern RushHourVoc_fixed::Hor/0:1
+    extern RushHourVoc_fixed::Vert/0:1
+
+    
+    type Place constructed from {Head, Middle, Tail, Degenerate}
+    
+    ToCarKey(Car,Size):key
+    ToObstacleKey(Obstacle, Size, Size):key
+    ToGoalKey(Car,Pos,Size):key
+    gameEndedKey:key
+    ToBackgroundKey(XCo, YCo):key
+    ToArrowKey(Move):key
+    
+    gameEndedLabel:label
+    
+    GetCarImagePath(Orientation, Place, Color):image
+    GetObstacleImagePath(Place, Place):image
+    GetGoalImagePath(Orientation, Place, Color):image
+    BackgroundImagePath:image
+    GetArrowImagePath(Dir):image
+    
+    GetGameWidth(XCo, YCo):width
+}
+
+vocabulary V_d3_in {
+    extern vocabulary V_d3
+    extern vocabulary idpd3::V_in
+}
+
+vocabulary V_d3_out {
+    extern vocabulary V_d3
+    extern vocabulary idpd3::V_out
+}
+
+procedure toCarKey_int(c,s) {
+    return "Car" .. tostring(c) .. "size" .. tostring(s)
+}
+
+procedure toObstacleKey_int(o, w, h) {
+    return "Obstacle" .. tostring(o) .. "width" .. tostring(w) .. "height" .. tostring(h)
+}
+
+procedure toGoalKey_int(c, p, s) {
+    return "goal" .. "car" .. tostring(c) .. "pos" .. tostring(p) .. "size" .. tostring(s)
+}
+
+procedure toBackgroundKey_int(x, y) {
+    return "background" .. "x" .. tostring(x) .. "y" .. tostring(y)
+}
+
+procedure toArrowKey_int(m) {
+    return "arrow" .. "move" .. tostring(m)
+}
+
+procedure toTimeLabel_int(t) {
+    return "Time: "..tostring(t)
+}
+
+procedure getImageDir_int() {
+    return "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/"
+}
+
+procedure getCarImagePath_int(o, p, c) { // "carHorTailYellow.png"
+    return getImageDir_int() .. "car" .. tostring(o) .. tostring(p) .. tostring(c) .. ".png"
+}
+
+procedure getObstacleImagePath_int(p, q) { // "obstacleTailHead.png"
+    return getImageDir_int() .. "obstacle" .. tostring(p) .. tostring(q) .. ".png"
+}
+
+procedure getGoalImagePath_int(o, p, c) { // "goalHorTailYellow.png"
+    return getImageDir_int() .. "goal" .. tostring(o) .. tostring(p) .. tostring(c) .. ".png"
+}
+
+procedure getBackgroundImagePath_int() {
+    return getImageDir_int() .. "background.png"
+}
+
+procedure getArrowImagePath_int(d) { // "arrowLeft.png"
+    return getImageDir_int() .. "arrow" .. tostring(d) .. ".png"
+}
+
+procedure getGameWidth_int(maxX, maxY) {
+    local m = math.max(maxX, maxY)
+    return 30 + 10*m
+}
+
+structure visualStruct_int: V_d3_out {
+    // dummy RushHourVoc_fixed specifications
+    Distance = {1}
+    Size = {1}
+    XCo = {1}
+    YCo = {1}
+    
+    Car = {C}
+    Obstacle = {O}
+    
+    // dummy idpd3::V_types specifications
+    time = {0}
+    width = {0..100}
+    height = {0..100}
+    
+    // Actual idpd3::V_out specifications
+    order = {1..5}
+    color = {"Black"}
+    image = {
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleTailTail.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleTailMiddle.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleTailHead.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleTailDegenerate.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleMiddleTail.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleMiddleMiddle.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleMiddleHead.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleMiddleDegenerate.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleHeadTail.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleHeadMiddle.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleHeadHead.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleHeadDegenerate.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleDegenerateTail.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleDegenerateMiddle.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleDegenerateHead.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/obstacleDegenerateDegenerate.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorHeadRed.png";
+    	"https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorMiddleRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorTailRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorDegenerateRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertHeadRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertMiddleRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertTailRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertDegenerateRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorHeadBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorMiddleBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorTailBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorDegenerateBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertHeadBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertMiddleBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertTailBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertDegenerateBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorHeadGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorMiddleGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorTailGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorDegenerateGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertHeadGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertMiddleGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertTailGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertDegenerateGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorHeadOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorMiddleOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorTailOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorDegenerateOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertHeadOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertMiddleOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertTailOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertDegenerateOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorHeadYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorMiddleYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorTailYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorDegenerateYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertHeadYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertMiddleYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertTailYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertDegenerateYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorHeadPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorMiddlePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorTailPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carHorDegeneratePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertHeadPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertMiddlePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertTailPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/carVertDegeneratePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorHeadRed.png";
+    	"https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorMiddleRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorTailRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorDegenerateRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertHeadRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertMiddleRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertTailRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertDegenerateRed.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorHeadBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorMiddleBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorTailBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorDegenerateBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertHeadBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertMiddleBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertTailBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertDegenerateBlue.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorHeadGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorMiddleGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorTailGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorDegenerateGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertHeadGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertMiddleGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertTailGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertDegenerateGreen.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorHeadOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorMiddleOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorTailOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorDegenerateOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertHeadOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertMiddleOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertTailOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertDegenerateOrange.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorHeadYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorMiddleYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorTailYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorDegenerateYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertHeadYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertMiddleYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertTailYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertDegenerateYellow.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorHeadPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorMiddlePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorTailPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalHorDegeneratePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertHeadPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertMiddlePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertTailPurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/goalVertDegeneratePurple.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/arrowLeft.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/arrowRight.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/arrowUp.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/arrowDown.png";
+        "https://people.cs.kuleuven.be/~simon.marynissen/project_MCS_2018-2019/background.png";
+        
+        
+    }
+    ToCarKey = procedure toCarKey_int
+    ToObstacleKey = procedure toObstacleKey_int
+    ToGoalKey = procedure toGoalKey_int
+    gameEndedKey = "Game ended"
+    ToBackgroundKey = procedure toBackgroundKey_int
+    ToArrowKey = procedure toArrowKey_int
+    
+    gameEndedLabel = "Game ended"
+    
+    GetCarImagePath = procedure getCarImagePath_int
+    GetObstacleImagePath = procedure getObstacleImagePath_int
+    GetGoalImagePath = procedure getGoalImagePath_int
+    BackgroundImagePath = procedure getBackgroundImagePath_int
+    GetArrowImagePath = procedure getArrowImagePath_int
+    
+    GetGameWidth = procedure getGameWidth_int
+}
+
+theory T_in : V_d3_in {
+    {
+        ! c[Car], d[Dir]: MoveAt(M(c, d, 1)) <- d3_click(0, ToArrowKey(M(c,d,1))) & ~GameEnded.
+    }
+}
+
+theory T_out : V_d3_out {
+    
+    {
+        //////// Background ////////
+        ! x[XCo], y[YCo]: d3_type(0, ToBackgroundKey(x,y)) = img.
+        ! x[XCo], y[YCo]: d3_x(0, ToBackgroundKey(x,y))  = 15+10*(x-1).
+        ! x[XCo], y[YCo]: d3_y(0, ToBackgroundKey(x,y))  = 15+10*(MAX[:YCo] - y).
+        ! x[XCo], y[YCo]: d3_rect_width(0, ToBackgroundKey(x,y)) = 10.
+        ! x[XCo], y[YCo]: d3_rect_height(0, ToBackgroundKey(x,y)) = 10.
+        ! x[XCo], y[YCo]: d3_img_path(0, ToBackgroundKey(x,y)) = BackgroundImagePath.
+        ! x[XCo], y[YCo]: d3_order(0, ToBackgroundKey(x,y)) = 1.
+        
+        //////// Arrow ////////
+        ! c[Car], d[Dir]: d3_type(0, ToArrowKey(M(c,d,1))) = img <- CanMove(c,d,1).
+        
+        ! c[Car], x[XCo], y[YCo]: d3_x(0, ToArrowKey(M(c,Left(),1))) =  12 + 10 * (x-1) <- CanMove(c,Left(),1) & GetPos(c) = P(x,y).
+        ! c[Car], x[XCo], y[YCo]: d3_y(0, ToArrowKey(M(c,Left(),1))) =  15 + 10 * (MAX[:YCo]-y) <- CanMove(c,Left(),1) & GetPos(c) = P(x,y).
+        ! c[Car], x[XCo], y[YCo]: d3_x(0, ToArrowKey(M(c,Right(),1))) =  18 + 10 * (x+GetSize(c)-2) <- CanMove(c,Right(),1) & GetPos(c) = P(x,y).
+        ! c[Car], x[XCo], y[YCo]: d3_y(0, ToArrowKey(M(c,Right(),1))) =  15 + 10 * (MAX[:YCo]-y) <- CanMove(c,Right(),1) & GetPos(c) = P(x,y).
+        ! c[Car], x[XCo], y[YCo]: d3_x(0, ToArrowKey(M(c,Up(),1))) =  15 + 10 * (x-1) <- CanMove(c,Up(),1) & GetPos(c) = P(x,y).
+        ! c[Car], x[XCo], y[YCo]: d3_y(0, ToArrowKey(M(c,Up(),1))) =  12 + 10 * (MAX[:YCo]-y) <- CanMove(c,Up(),1) & GetPos(c) = P(x,y).
+        ! c[Car], x[XCo], y[YCo]: d3_x(0, ToArrowKey(M(c,Down(),1))) =  15 + 10 * (x-1) <- CanMove(c,Down(),1) & GetPos(c) = P(x,y).
+        ! c[Car], x[XCo], y[YCo]: d3_y(0, ToArrowKey(M(c,Down(),1))) =  18 + 10 * (MAX[:YCo]-y + GetSize(c)-1) <- CanMove(c,Down(),1) & GetPos(c) = P(x,y).
+        
+        
+        ! c[Car], d[Dir]: d3_rect_width(0, ToArrowKey(M(c,d,1))) = 4 <- CanMove(c,d,1).
+        ! c[Car], d[Dir]: d3_rect_height(0, ToArrowKey(M(c,d,1))) = 4 <- CanMove(c,d,1).
+        
+        ! c[Car], d[Dir]: d3_img_path(0, ToArrowKey(M(c,d,1))) = GetArrowImagePath(d) <- CanMove(c,d,1).
+        ! c[Car], d[Dir]: d3_order(0, ToArrowKey(M(c,d,1))) = 5 <- CanMove(c,d,1).
+        
+        
+        //////// Car ////////
+        ! c[Car], s[Size]: d3_type(0, ToCarKey(c, s)) = img <- s =< GetSize(c).
+        
+        // horizontal cars
+        ! c[Car], s[Size], x[XCo], y[YCo]: d3_x(0, ToCarKey(c, s)) = 15+10*(x + s - 2) <- GetPos(c) = P(x,y) & s =< GetSize(c) & GetOrientation(c) = Hor().
+        ! c[Car], s[Size], x[XCo], y[YCo]: d3_y(0, ToCarKey(c, s)) = 15+10*(MAX[:YCo] - y) <- GetPos(c) = P(x,y) & s =< GetSize(c) & GetOrientation(c) = Hor().
+        
+        // vertical cars
+        ! c[Car], s[Size], x[XCo], y[YCo]: d3_x(0, ToCarKey(c, s)) = 15+10*(x-1) <- GetPos(c) = P(x,y) & s =< GetSize(c) & GetOrientation(c) = Vert().
+        ! c[Car], s[Size], x[XCo], y[YCo]: d3_y(0, ToCarKey(c, s)) = 15+10*(MAX[:YCo] - y + s - 1) <- GetPos(c) = P(x,y) & s =< GetSize(c) & GetOrientation(c) = Vert().
+        
+        
+        ! c[Car], s[Size]: d3_rect_width(0, ToCarKey(c, s)) = 10 <- s =< GetSize(c).
+        ! c[Car], s[Size]: d3_rect_height(0, ToCarKey(c, s)) = 10 <- s =< GetSize(c).
+        
+        // horizontal
+        ! c[Car]: d3_img_path(0, ToCarKey(c, 1)) = GetCarImagePath(Hor(), Tail(), GetColor(c)) <- GetSize(c) > 1 & GetOrientation(c) = Hor().
+        ! c[Car] s[Size]: d3_img_path(0, ToCarKey(c, s)) = GetCarImagePath(Hor(), Middle(), GetColor(c)) <- 1 < s < GetSize(c) & GetOrientation(c) = Hor().
+        ! c[Car]: d3_img_path(0, ToCarKey(c, GetSize(c))) = GetCarImagePath(Hor(), Head(), GetColor(c)) <- 1 < GetSize(c) & GetOrientation(c) = Hor().
+        // degenerate case (size = 1)
+        ! c[Car]: d3_img_path(0, ToCarKey(c, 1)) = GetCarImagePath(Hor(), Degenerate(), GetColor(c)) <- GetSize(c) = 1 & GetOrientation(c) = Hor().
+        
+        // vertical
+        ! c[Car]: d3_img_path(0, ToCarKey(c, 1)) = GetCarImagePath(Vert(), Tail(), GetColor(c)) <- GetSize(c) > 1 & GetOrientation(c) = Vert().
+        ! c[Car] s[Size]: d3_img_path(0, ToCarKey(c, s)) = GetCarImagePath(Vert(), Middle(), GetColor(c)) <- 1 < s < GetSize(c) & GetOrientation(c) = Vert().
+        ! c[Car]: d3_img_path(0, ToCarKey(c, GetSize(c))) = GetCarImagePath(Vert(), Head(), GetColor(c)) <- 1 < GetSize(c) & GetOrientation(c) = Vert().
+        // degenerate case (size = 1)
+        ! c[Car]: d3_img_path(0, ToCarKey(c, 1)) = GetCarImagePath(Vert(), Degenerate(), GetColor(c)) <- GetSize(c) = 1 & GetOrientation(c) = Vert().
+        
+        ! c[Car], s[Size]: d3_order(0, ToCarKey(c, s)) = 4 <- s =< GetSize(c).
+                
+        //////// Obstacle ////////
+        ! o[Obstacle], w[Size], h[Size]: d3_type(0, ToObstacleKey(o, w, h)) = img <- w =< GetWidth(o) & h =< GetHeight(o).
+        
+        ! o[Obstacle], w[Size], h[Size], x[XCo], y[YCo]: d3_x(0, ToObstacleKey(o, w, h)) = 15 + 10*(x+w-2) <- GetPos(o) = P(x,y) & w =< GetWidth(o) & h =< GetHeight(o).
+        ! o[Obstacle], w[Size], h[Size], x[XCo], y[YCo]: d3_y(0, ToObstacleKey(o, w, h)) = 15 + 10*(MAX[:YCo]-y+h-1) <- GetPos(o) = P(x,y) & w =< GetWidth(o) & h =< GetHeight(o).
+        
+        ! o[Obstacle], w[Size], h[Size]: d3_rect_width(0, ToObstacleKey(o, w, h)) = 10 <- w =< GetWidth(o) & h =< GetHeight(o).
+        ! o[Obstacle], w[Size], h[Size]: d3_rect_height(0, ToObstacleKey(o, w, h)) = 10 <- w =< GetWidth(o) & h =< GetHeight(o).
+        
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, 1, 1)) = GetObstacleImagePath(Tail(), Tail()) <- 1 < GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle], h[Size]: d3_img_path(0, ToObstacleKey(o, 1, h)) = GetObstacleImagePath(Tail(), Middle()) <- 1 < GetWidth(o) & 1 < h < GetHeight(o).
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, 1, GetHeight(o))) = GetObstacleImagePath(Tail(), Head()) <- 1 < GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, 1, 1)) = GetObstacleImagePath(Tail(), Degenerate()) <- 1 < GetWidth(o) & 1 = GetHeight(o).
+
+        ! o[Obstacle], w[Size]: d3_img_path(0, ToObstacleKey(o, w, 1)) = GetObstacleImagePath(Middle(), Tail()) <- 1 < w < GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle], w[Size], h[Size]: d3_img_path(0, ToObstacleKey(o, w, h)) = GetObstacleImagePath(Middle(), Middle()) <- 1 < w < GetWidth(o) & 1 < h < GetHeight(o).
+        ! o[Obstacle], w[Size]: d3_img_path(0, ToObstacleKey(o, w, GetHeight(o))) = GetObstacleImagePath(Middle(), Head()) <- 1 < w < GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle], w[Size]: d3_img_path(0, ToObstacleKey(o, w, 1)) = GetObstacleImagePath(Middle(), Degenerate()) <- 1 < w < GetWidth(o) & 1 = GetHeight(o).
+
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, GetWidth(o), 1)) = GetObstacleImagePath(Head(), Tail()) <- 1 < GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle], h[Size]: d3_img_path(0, ToObstacleKey(o, GetWidth(o), h)) = GetObstacleImagePath(Head(), Middle()) <- 1 < GetWidth(o) & 1 < h < GetHeight(o).
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, GetWidth(o), GetHeight(o))) = GetObstacleImagePath(Head(), Head()) <- 1 < GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, GetWidth(o), 1)) = GetObstacleImagePath(Head(), Degenerate()) <- 1 < GetWidth(o) & 1 = GetHeight(o).
+        
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, 1, 1)) = GetObstacleImagePath(Degenerate(), Tail()) <- 1 = GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle], h[Size]: d3_img_path(0, ToObstacleKey(o, 1, h)) = GetObstacleImagePath(Degenerate(), Middle()) <- 1 = GetWidth(o) & 1 < h < GetHeight(o).
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, 1, GetHeight(o))) = GetObstacleImagePath(Degenerate(), Head()) <- 1 = GetWidth(o) & 1 < GetHeight(o).
+        ! o[Obstacle]: d3_img_path(0, ToObstacleKey(o, 1, 1)) = GetObstacleImagePath(Degenerate(), Degenerate()) <- 1 = GetWidth(o) & 1 = GetHeight(o).
+        
+        ! o[Obstacle], w[Size], h[Size]: d3_order(0, ToObstacleKey(o, w, h)) = 2 <- w =< GetWidth(o) & h =< GetHeight(o).
+        
+        //////// Goal ////////
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_type(0, ToGoalKey(c, P(x,y), s)) = img <- Goal(c, P(x,y)) & s =< GetSize(c).
+        
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_x(0, ToGoalKey(c, P(x,y), s)) = 15+10*(x + s - 2) <- Goal(c, P(x,y)) & s =< GetSize(c) & GetOrientation(c) = Hor().
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_y(0, ToGoalKey(c, P(x,y), s)) = 15+10*(MAX[:YCo] - y) <- Goal(c, P(x,y)) & s =< GetSize(c) & GetOrientation(c) = Hor().
+        
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_x(0, ToGoalKey(c, P(x,y), s)) = 15+10*(x-1) <- Goal(c, P(x,y)) & s =< GetSize(c) & GetOrientation(c) = Vert().
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_y(0, ToGoalKey(c, P(x,y), s)) = 15+10*(MAX[:YCo] - y + s - 1) <- Goal(c, P(x,y)) & s =< GetSize(c) & GetOrientation(c) = Vert().
+        
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_rect_width(0, ToGoalKey(c, P(x,y), s)) = 10 <- Goal(c, P(x,y)) & s =< GetSize(c).
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_rect_height(0, ToGoalKey(c, P(x,y), s)) = 10 <- Goal(c, P(x,y)) & s =< GetSize(c).
+        
+        // horizontal
+        ! c[Car], x[XCo], y[YCo]: d3_img_path(0, ToGoalKey(c, P(x,y), 1)) = GetGoalImagePath(Hor(), Tail(), GetColor(c)) <- Goal(c, P(x,y)) & GetSize(c) > 1 & GetOrientation(c) = Hor().
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_img_path(0, ToGoalKey(c, P(x,y), s)) = GetGoalImagePath(Hor(), Middle(), GetColor(c)) <- Goal(c, P(x,y)) & 1 < s < GetSize(c) & GetOrientation(c) = Hor().
+        ! c[Car], x[XCo], y[YCo]: d3_img_path(0, ToGoalKey(c, P(x,y), GetSize(c))) = GetGoalImagePath(Hor(), Head(), GetColor(c)) <- Goal(c, P(x,y)) & 1 < GetSize(c) & GetOrientation(c) = Hor().
+        // degenerate case (size = 1)
+        ! c[Car], x[XCo], y[YCo]: d3_img_path(0, ToGoalKey(c, P(x,y), 1)) = GetGoalImagePath(Hor(), Degenerate(), GetColor(c)) <- Goal(c, P(x,y)) & GetSize(c) = 1 & GetOrientation(c) = Hor().
+        // vertical
+        ! c[Car], x[XCo], y[YCo]: d3_img_path(0, ToGoalKey(c, P(x,y), 1)) = GetGoalImagePath(Vert(), Tail(), GetColor(c)) <- Goal(c, P(x,y)) & GetSize(c) > 1 & GetOrientation(c) = Vert().
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_img_path(0, ToGoalKey(c, P(x,y), s)) = GetGoalImagePath(Vert(), Middle(), GetColor(c)) <- Goal(c, P(x,y)) & 1 < s < GetSize(c) & GetOrientation(c) = Vert().
+        ! c[Car], x[XCo], y[YCo]: d3_img_path(0, ToGoalKey(c, P(x,y), GetSize(c))) = GetGoalImagePath(Vert(), Head(), GetColor(c)) <- Goal(c, P(x,y)) & 1 < GetSize(c) & GetOrientation(c) = Vert().
+        // degenerate case (size = 1)
+        ! c[Car], x[XCo], y[YCo]: d3_img_path(0, ToGoalKey(c, P(x,y), 1)) = GetGoalImagePath(Vert(), Degenerate(), GetColor(c)) <- Goal(c, P(x,y)) & GetSize(c) = 1 & GetOrientation(c) = Vert().
+        
+        ! c[Car], x[XCo], y[YCo], s[Size]: d3_order(0, ToGoalKey(c, P(x,y), s)) = 3 <- Goal(c, P(x,y)) & s =< GetSize(c).
+        
+        
+        d3_type(0, gameEndedKey) = text.
+        d3_text_label(0, gameEndedKey) = gameEndedLabel <-  GameEnded.
+        d3_x(0, gameEndedKey) = 7.
+        d3_y(0, gameEndedKey) = 5.
+        d3_text_size(0, gameEndedKey) = 2.
+        
+    }
+    d3_height(0) = GetGameWidth(MAX[:XCo],MAX[:YCo]).
+    d3_width(0) = d3_height(0).
+}
+
+include <table_utils>
+
+procedure extend_int(struct){
+    local mystruct = clone(struct)
+    setvocabulary(mystruct,V_d3_out)
+    mystruct[idpd3::V_types::time.type] = range(0,0)//#totable(mystruct[RushHourVoc_fixed::Time.type])-1)
+    mystruct[idpd3::V_types::order.type] = range(1,5)
+    local m = math.max(#totable(mystruct[RushHourVoc_fixed::XCo.type]), #totable(mystruct[RushHourVoc_fixed::YCo.type]))
+    m = 30+10*m
+    mystruct[idpd3::V_types::width.type] = range(0,m)
+    mystruct[idpd3::V_types::height.type] = range(0,m)
+    mystruct[idpd3::V_types::label.type] = visualStruct_int[idpd3::V_types::label.type]
+    mystruct[idpd3::V_types::order.type] = visualStruct_int[idpd3::V_types::order.type]
+    mystruct[idpd3::V_types::color.type] = visualStruct_int[idpd3::V_types::color.type]
+    local image = {getBackgroundImagePath_int()}
+    for k,v in pairs(totable(mystruct[RushHourVoc_fixed::Orientation.type])) do
+        for l,w in pairs(totable(mystruct[V_d3::Place.type])) do
+            for m,x in pairs(totable(mystruct[RushHourVoc_fixed::Color.type])) do
+            	table.insert(image, getCarImagePath_int(v,w,x))
+                table.insert(image, getGoalImagePath_int(v,w,x))
+            end
+        end
+    end
+    for k,v in pairs(totable(mystruct[RushHourVoc_fixed::Dir.type])) do
+        table.insert(image, getArrowImagePath_int(v))
+    end
+    for k,v in pairs(totable(mystruct[V_d3::Place.type])) do
+        for l,w in pairs(totable(mystruct[V_d3::Place.type])) do
+            table.insert(image, getObstacleImagePath_int(v,w))
+        end
+    end
+    local key = {}
+    for k,v in pairs(totable(mystruct[RushHourVoc_fixed::Car.type])) do
+        for l,w in pairs(totable(mystruct[RushHourVoc_fixed::Size.type])) do
+        	table.insert(key, toCarKey_int(v,w)) 
+        end
+        for l,w in pairs(totable(mystruct[RushHourVoc_fixed::Pos.type])) do
+            for m,x in pairs(totable(mystruct[RushHourVoc_fixed::Size.type])) do
+            	table.insert(key, toGoalKey_int(v,w,x))
+            end 
+        end
+    end
+    for k,v in pairs(totable(mystruct[RushHourVoc_fixed::Move.type])) do
+        	table.insert(key, toArrowKey_int(v)) 
+    end
+    for k,v in pairs(totable(mystruct[RushHourVoc_fixed::XCo.type])) do
+        for l,w in pairs(totable(mystruct[RushHourVoc_fixed::YCo.type])) do
+        	table.insert(key, toBackgroundKey_int(v,w)) 
+        end
+    end
+    for k,v in pairs(totable(mystruct[RushHourVoc_fixed::Obstacle.type])) do
+        for l,w in pairs(totable(mystruct[RushHourVoc_fixed::Size.type])) do
+            for m,x in pairs(totable(mystruct[RushHourVoc_fixed::Size.type])) do
+        		table.insert(key, toObstacleKey_int(v,w,x))
+            end
+        end
+    end
+    table.insert(key, "Game ended")
+    mystruct[idpd3::V_types::image.type] = image
+    mystruct[idpd3::V_types::key.type] = key
+
+    mystruct[V_d3::Place.type] = visualStruct_int[V_d3::Place.type]
+    mystruct[V_d3::ToCarKey] = visualStruct_int[V_d3::ToCarKey]
+    mystruct[V_d3::ToObstacleKey] = visualStruct_int[V_d3::ToObstacleKey]
+    mystruct[V_d3::ToGoalKey] = visualStruct_int[V_d3::ToGoalKey]
+    mystruct[V_d3::ToArrowKey] = visualStruct_int[V_d3::ToArrowKey]
+   	
+    mystruct[V_d3::gameEndedKey] = visualStruct_int[V_d3::gameEndedKey]
+    mystruct[V_d3::ToBackgroundKey] = visualStruct_int[V_d3::ToBackgroundKey]
+    
+    mystruct[V_d3::gameEndedLabel] = visualStruct_int[V_d3::gameEndedLabel]
+    
+    mystruct[V_d3::GetGameWidth] = visualStruct_int[V_d3::GetGameWidth]
+    mystruct[V_d3::GetCarImagePath] = visualStruct_int[V_d3::GetCarImagePath]
+    mystruct[V_d3::GetObstacleImagePath] = visualStruct_int[V_d3::GetObstacleImagePath]
+    mystruct[V_d3::GetGoalImagePath] = visualStruct_int[V_d3::GetGoalImagePath]
+    mystruct[V_d3::BackgroundImagePath] = visualStruct_int[V_d3::BackgroundImagePath]
+    mystruct[V_d3::GetArrowImagePath] = visualStruct_int[V_d3::GetArrowImagePath]
+    return mystruct
+}
+
+procedure initInteractiveVisualisation() {
+    idpd3B = idpd3
+    idpd3.init_idpd3()
+    idpd3C = idpd3
+    idpd3 = idpd3B
+    //print(V_d3_in)
+}
+
+procedure visualiseInteractively(struct) {
+    idpd3_browser:setLogLevel(3)
+    local timer = require("idpd3/timer")
+    local logPrintTime = require("idpd3/logPrintTime"):setTimer(timer)
+    idpd3_browser:setLogger(logPrintTime:create())
+    
+    local extended_struct = extend_int(struct)
+    local newstruct = clone(extended_struct)
+    local struct_in = clone(extended_struct)
+    local struct_out = clone(extended_struct)
+    setvocabulary(newstruct, RushHourVoc)
+    setvocabulary(struct_in, V_d3_in)
+    setvocabulary(struct_out, V_d3_out)
+    local go = idpd3_browser:createLTC(
+        RushHourTheory, newstruct, RushHourVoc_fixed_ss,
+        T_in, struct_in, V_d3_in,
+        T_out, struct_out, V_d3_out)
+    local lastState = go()
+
+}

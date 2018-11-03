@@ -1,0 +1,237 @@
+//DO NOT CHANGE THIS VOCABULARY
+LTCvocabulary RushHourVoc_fixed {
+    //LTC time
+    type Time isa int
+    Start:Time
+    partial Next(Time):Time
+    
+    //Distance
+    type Distance isa int
+    //Size for obstacles and cars
+    type Size isa int
+    
+    //Standard mathematical coordinate system
+    type Co isa int
+    type XCo isa Co
+    type YCo isa Co
+    type Pos constructed from { P(XCo, YCo) }
+    
+    //Driving directions
+    type Dir constructed from { Up, Down, Left, Right }
+    //Entity orientation
+    type Orientation constructed from {Hor, Vert}
+    
+    //Types of objects: cars and obstacles
+    type Entity
+    type Car isa Entity
+    type Obstacle isa Entity
+    
+    //Moving a car in a certain direction over the specified distance
+    type Move constructed from { M(Car, Dir, Distance) }
+    
+
+    //An entity's position (given by its upper Left corner).
+    //The initial position
+    Init_Pos(Entity):Pos
+    //The variable position at each time
+    GetPos(Time, Entity):Pos
+    
+    //Car attributes: size, orientation and goal position (if any)
+    GetSize(Car):Size
+    GetOrientation(Car):Orientation
+    Goal(Car,Pos)
+   
+    //Obstacle attributes: size in both directions
+    GetWidth(Obstacle):Size
+    GetHeight(Obstacle):Size
+    
+    //Predicate specifying whether the game has ended at a certain time
+    GameEnded(Time)
+    //Predicate speficying whether the game is won at a certain time
+    Won(Time)
+    
+    //Giving cars a color (only used for visulization purposes)
+    type Color constructed from { Red, Orange, Yellow, Green, Blue, Purple }
+    GetColor(Car): Color
+    
+    //Predicate that specifies if a certain car can move in a given direction over a given distance from its current position
+   	CanMove(Time, Car, Dir, Distance)
+}
+
+//DO NOT CHANGE THIS VOCABULARY
+LTCvocabulary RushHourVoc_action {
+    extern vocabulary RushHourVoc_fixed
+    //The particular move that is performed at each time
+    MoveAt(Time,Move)
+}
+
+LTCvocabulary RushHourVoc {
+    extern vocabulary RushHourVoc_action
+    // ADD YOUR HELPER PREDICATES AND FUNCTIONS HERE
+}
+
+//DO NOT CHANGE THIS THEORY
+theory AuxTheo : RushHourVoc {
+    //Defining time
+    Start = MIN[:Time].
+    {
+        ! t[Time] : Next(t) = t + 1 <- Time(t+1). 
+    }
+    
+    //0 should be a valid distance
+    Distance(0).
+    MIN[:Size] = 1.
+}
+
+theory RushHourTheory : RushHourVoc {
+	// PLACE YOUR THEORY HERE
+}
+
+
+procedure main() {
+    // various options, if IDP takes a long time, try commenting out some to see the effect
+    stdoptions.splitdefs = false
+    stdoptions.postprocessdefs = false
+    stdoptions.cpsupport = false
+    stdoptions.groundwithbounds = false
+    stdoptions.liftedunitpropagation = false
+    //allVerifications()
+    show(Easy_3by3)
+}
+
+// Use this to visualise the structure struc
+procedure show(struc) {
+    if struc == nil then
+        print("Please provide an existing structure")
+        return
+    end
+	initVisualisation()
+	local sol = onemodel(merge(AuxTheo, RushHourTheory),struc)
+	print(sol)
+	if sol ~= nil then
+		visualiseStruct(sol)
+	else
+		print("Your theory is unsatisfiable!")
+	end
+}
+
+// Use this to interactively visualise the structure struc
+procedure interact(struc) {
+    if struc == nil then
+        print("Please provide an existing structure")
+        return
+    end
+    initInteractiveVisualisation()
+    visualiseInteractively(struc)
+}
+
+
+
+
+////// Verifications //////
+
+procedure isSat(theo, struc) {
+    T1 = merge(theo, RushHourTheory)
+    T1 = merge(T1, AuxTheo);
+    return sat(T1, struc);
+}
+
+//It is possible to win the game.
+theory verification1: RushHourVoc {
+	
+}
+
+procedure verification1proc(struct) {
+	
+}
+
+//If the game has not ended at the start and at some other time it has ended, then the game is won at that time.
+theory verification2: RushHourVoc {
+    
+}
+
+procedure verification2proc(struct) {
+	
+}
+
+//When performing a move with a car and then a move inverse to this previous move (eg. first 2 squares left and then 2 squares right), the positions of all entities on the board remain unchanged. You can define auxiliary predicates/functions in verification3Voc to keep your theory cleaner.
+vocabulary verification3Voc {
+ 	extern vocabulary RushHourVoc
+    
+}
+
+theory verification3: verification3Voc {
+	
+}
+
+procedure verification3proc(struct) {
+    
+}
+
+
+//Check that the game is winnable in exactly 4 moves
+theory verification4: RushHourVoc {
+    
+}
+
+procedure verification4proc(struct) {
+	
+}
+
+//Verify that all positions that initially contain no entity are reachable from each other in any structure. You can define auxiliary predicates/functions in verification5Voc to keep your theory cleaner.
+vocabulary verification5Voc {
+ 	extern vocabulary RushHourVoc
+    
+}
+
+theory verification5: verification5Voc {
+    
+}
+
+procedure verification5proc(struct) {
+	
+}
+
+//Verify that once the game has ended, it stays that way.
+theory verification6: RushHourVoc {
+    
+}
+
+procedure verification6proc(struct) {
+	
+}
+
+//Verify that it is impossible to win without moving a green car.
+theory verification7: RushHourVoc {
+    
+}
+
+procedure verification7proc(struct) {
+	
+}
+
+
+//DO NOT CHANGE THIS PROCEDURE
+procedure allVerifications(){
+    print("The game is winnable:")
+    verification1proc(Easy_3by3)
+    print("Game ended means won if t not Start:")
+    verification2proc(In4Moves_4by4)
+    print("Moves are canceled out by their inverse:")
+    setvocabulary(Hardest4_4by4,verification3Voc)
+    verification3proc(Hardest4_4by4)
+    print("Game is winnable in exactly 4 moves:")
+    verification4proc(In4Moves_4by4)
+    print("All free positions are connected: ")
+    setvocabulary(Hardest4_4by4,verification5Voc)
+    verification5proc(Hardest4_4by4)
+    print("A game that has ended stays finished:")
+    verification6proc(Blocked_3by3)
+    print("Impossible to win without moving green car:")
+    verification7proc(Easy_3by3)
+}
+
+
+include "visualisation.idp"
+include "visualisationwithinteraction.idp"
+include "structures.idp"
