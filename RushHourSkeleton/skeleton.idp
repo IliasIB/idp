@@ -68,6 +68,8 @@ LTCvocabulary RushHourVoc_action {
 LTCvocabulary RushHourVoc {
     extern vocabulary RushHourVoc_action
     // ADD YOUR HELPER PREDICATES AND FUNCTIONS HERE
+    C_Pos(Time,Entity,Pos)
+    C_NPos(Time,Entity,Pos)
 }
 
 //DO NOT CHANGE THIS THEORY
@@ -85,6 +87,23 @@ theory AuxTheo : RushHourVoc {
 
 theory RushHourTheory : RushHourVoc {
 	// PLACE YOUR THEORY HERE
+    
+    // Preconditions
+    // Cars cannot overlap
+    ! car[Car] t[Time] : ~? car2[Car] x[XCo] y[YCo] x2[XCo] y2[YCo]: GetPos(t,car) = P(x,y) & GetPos(t,car2) = P(x2,y2) & (x >= x2 > x + GetSize(car) & y >= y2 > y + 1) | (x >= x2 > x + 1 & y >= y2 > y + GetSize(car)).
+    // Obstacles cannot overlap
+    ! obstacle[Obstacle] t[Time] : ~? obstacle2[Obstacle] x[XCo] y[YCo] x2[XCo] y2[YCo]: GetPos(t,obstacle) = P(x,y) & GetPos(t,obstacle2) = P(x2,y2) & (x >= x2 > x + GetWidth(obstacle) & y >= y2 > y + GetHeight(obstacle)) | (x >= x2 > x + GetHeight(obstacle) & y >= y2 > y + GetWidth(obstacle)).
+    // Cars cannot overlap with obstacles
+    ! car[Car] obstacle[Obstacle] t[Time] : ~? x[XCo] y[YCo] x2[XCo] y2[YCo]: GetPos(t,obstacle) = P(x,y) & GetPos(t,car) = P(x2,y2) & (x >= x2 > x + GetWidth(obstacle) & y >= y2 > y + GetHeight(obstacle)) | (x >= x2 > x + GetHeight(obstacle) & y >= y2 > y + GetWidth(obstacle)).
+    
+    // Cars must exist within the bounds of the game
+    ! car[Car] t[Time] : ? x[XCo] y[YCo] x2[XCo] y2[YCo] x3[XCo] y3[YCo] orientation[Orientation] : GetPos(t,car) = P(x2,y2) & GetOrientation(car) = orientation & (x =< x2 =< x3 & y =< y2 =< y3)  & (orientation = Hor => (x =< x2 + GetSize(car) =< x3 & y =< y2 + 1 =< y3)) & (orientation = Vert => (x =< x2 - 1 =< x3 & y =< y2 - GetSize(car) =< y3)).
+    
+    // Horizontal orientation results in only going left or right, vertical in up or down
+    ! car[Car] dir[Dir] distance[Distance] t[Time] : MoveAt(t, M(car,dir,distance)) & GetOrientation(car) = Hor => dir = Left | dir = Right.
+    ! car[Car] dir[Dir] distance[Distance] t[Time] : MoveAt(t, M(car,dir,distance)) & GetOrientation(car) = Vert => dir = Up | dir = Down.
+    
+
 }
 
 
