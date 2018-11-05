@@ -1,0 +1,13 @@
+include "DataBaseInIDP.idp"
+include "RunQueries.idp"
+
+procedure main(){
+    queries = {q04}
+    runTrueFalseQueries(queries)
+}
+
+query q04: Sigma{
+    {x[domain] : (?c : Enrolled(x,c)) & !c : !y : Grade(x,c,y) => y=AA | y=AAA }
+}
+
+// cont. x[domain] : (?c : Enrolled(x,c)) & !z : !c : !y : Grade(z) & G2Student(z,x) & G2Course(z,c) & G2Score(z,y) => y=AA | y=AAA

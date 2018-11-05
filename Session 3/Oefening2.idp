@@ -1,0 +1,22 @@
+
+include "DataBaseInIDP.idp"
+include "RunQueries.idp"
+ 
+procedure main(){
+	queries = {O2Q1;O2Q2;O2Q3}
+	displayQueryAnswers(queries)
+}
+
+//TODO: complete queries. 
+
+query O2Q1: Sigma{
+	{x[domain] y[domain] :  Enrolled(x,y)}
+}
+
+query O2Q2: Sigma{
+	{x[domain] : #{c : Enrolled(x,c)} = 1}
+}
+
+query O2Q3: Sigma{
+	{x[domain] : !c : Enrolled(x,CS230()) & ~Grade(x,c,F())}
+}

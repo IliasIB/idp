@@ -1,0 +1,77 @@
+vocabulary V {
+	type Time isa int
+	type Player
+	type Matches isa int
+    type Heap
+    
+    Nb(Heap,Matches,Time)
+    Turn(Player,Time)
+    Winner(Player,Time)
+    GameOver(Time)
+    Takes(Player,Heap,Matches,Time)
+    
+    type Action constructed from {Takes(Player,Heap,Matches,Time)}
+	do(Time, Action)
+    
+    // Time
+	Start:Time
+    Next(Time) : Time
+    
+    I_Nb(Heap,Matches)
+    C_Nb(Heap,Matches,Time)
+    Cn_Nb(Heap,Matches,Time)
+}
+
+theory timeTheo:V{
+	{
+		Start = MIN[:Time].
+		!t: Next(t) = t+1 <- Time(t+1).
+	}
+}
+
+structure S : V {
+	Time = {0..50}
+    Player={P1;P2}
+    I_Nb={H1,1;H2,3;H3,5;H4,7}
+}
+
+theory T : V {
+    // Every player must take at least one match from a heap and at most the whole heap
+    ! player[Player],t[Time] : Turn(player,t) => (? heap[Heap],matches[Matches] : Takes(player,heap,matches,t) & matches > 0 & (? matches2[Matches] : Nb(heap,matches2,t) & matches =< matches2)).
+    
+    // Inertia
+	{
+        !heap[Heap],matches[Matches] : Nb(heap,matches,0) <- I_Nb(heap,matches).
+        !heap[Heap],matches[Matches],time[Time] : Nb(heap,matches,Next(t)) <- C_Nb(heap,matches,t).
+        !heap[Heap],matches[Matches],time[Time] : Nb(heap,matches,Next(t)) <- Nb(heap,matches,t) & ~Cn_Nb(heap,matches,t).
+    }
+    
+    // Causes
+    {
+        //If the number of matches changes, all other values are no longer it's amount.
+		! heap[Heap],matches[Matches],matches2[Matches],t[Time]: Cn_Nb(heap,matches2,t) <- C_Nb(heap,matches,t ) & matches ~= matches2.
+        
+        
+        // Taking matches causes a change in matches
+        !  player[Player],heap[Heap],matches[Matches],matches2[Matches],t[Time] : C_Nb(heap,matches-matches2,t) <- Takes(player,heap,matches2,t) & Nb(heap,matches,t).
+
+        // If there are no more matches on the heaps then it's game over
+    	! t[Time] :  GameOver(t) <- ! heap[Heap] : Nb(heap,0,t).
+        // If a player had it's turn then the other player's turn is next
+        ! player[Player],player2[Player],t[Time] : Turn(player2,Next(t)) <- Turn(player,t) & player~=player2.
+        // The winner is the player that doesn't take the last matches
+        ! player[Player],player2[Player],heap[Heap],matches[Matches],t[Time] : Winner(player2,t) <- Takes(player,heap,matches,t) & Nb(heap,matches,t) & (! heap2[Heap] : heap2~=heap => Nb(heap,0,t)) & player~=player2.
+    }
+    
+    // Every turn only contains one actions
+    ! t[Time] : ?1 action : do(t,action).
+    
+    // Either player has the possibility to win the game
+    ? player[Player],t[Time] : Winner(player,t).
+}
+
+
+procedure main() {
+	print(modelexpand(merge(T,timeTheo),S)[1])
+}	
+

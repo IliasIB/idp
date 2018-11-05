@@ -1,0 +1,30 @@
+vocabulary V{
+  type partition isa int
+  type number isa int
+  
+  inPartition(number, partition)
+  inPartialPartition(number,partition)
+}
+
+theory T:V{
+  !n1[number],n2[number],n3[number] : !p[partition] : (inPartition(n1,p) | inPartialPartition(n1,p)) & (inPartition(n2,p) | inPartialPartition(n2,p)) & n3 = +(n1,n2) => ~inPartition(n3,p).
+  
+  !n[number] : ?p[partition] : inPartition(n,p).
+}
+
+structure S:V{
+    number={1..70}
+    partition={1..5}
+    inPartialPartition = {
+        1,1;8,1;12,1;14,1;
+        3,3;5,3;7,3;11,3;13,3;15,3;
+		2,4;6,4;10,4;
+        4,5
+    }
+}
+
+procedure main(){
+    sols = modelexpand(T,S)
+	// print(sols [3])
+	printmodels(sols)
+}
