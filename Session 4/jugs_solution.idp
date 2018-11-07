@@ -70,9 +70,6 @@ LTCvocabulary RushHourVoc {
     // ADD YOUR HELPER PREDICATES AND FUNCTIONS HERE
     C_Pos(Time,Entity,Pos)
     C_NPos(Time,Entity,Pos)
-    GetWidthE(Entity):Size
-    GetHeightE(Entity):Size
-    IsCoordinate(XCo,YCo)
 }
 
 //DO NOT CHANGE THIS THEORY
@@ -90,58 +87,30 @@ theory AuxTheo : RushHourVoc {
 
 theory RushHourTheory : RushHourVoc {
 	// PLACE YOUR THEORY HERE
-    // Auxiliary
-    // Width and height for entities
-    ! car[Car] : GetOrientation(car) = Hor => GetWidthE(car) = GetSize(car) & GetHeightE(car) = 1.
-    ! car[Car] : GetOrientation(car) = Vert => GetWidthE(car) = 1 & GetHeightE(car) = GetSize(car).
-    ! obstacle[Obstacle] : GetWidthE(obstacle) = GetWidth(obstacle) & GetHeightE(obstacle) = GetHeight(obstacle).
-    // All possible coordinates
-    ! x[XCo] y[YCo] : IsCoordinate(x,y).
     
- 
     // Preconditions
-    // Entities may not lie in each other
-    ! entity[Entity] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] t[Time] : GetPos(t,entity) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & entity~=entity2 => ~(x =< x2 < x + GetWidthE(entity) & y >= y2 > y - GetHeightE(entity)).
-    
-    // Entities may not intersect
-    ! entity[Car] entity2[Car] x[XCo] y[YCo] x2[XCo] y2[YCo] t[Time] : GetPos(t,entity) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & entity~=entity2 => ~(x =< x2 < x + GetWidthE(entity) & y2 >= y > y2 - GetHeightE(entity2)).
+    // Cars cannot overlap
+    ! car[Car] t[Time] : ~? car2[Car] x[XCo] y[YCo] x2[XCo] y2[YCo]: GetPos(t,car) = P(x,y) & GetPos(t,car2) = P(x2,y2) & (x >= x2 > x + GetSize(car) & y >= y2 > y + 1) | (x >= x2 > x + 1 & y >= y2 > y + GetSize(car)).
+    // Obstacles cannot overlap
+    ! obstacle[Obstacle] t[Time] : ~? obstacle2[Obstacle] x[XCo] y[YCo] x2[XCo] y2[YCo]: GetPos(t,obstacle) = P(x,y) & GetPos(t,obstacle2) = P(x2,y2) & (x >= x2 > x + GetWidth(obstacle) & y >= y2 > y + GetHeight(obstacle)) | (x >= x2 > x + GetHeight(obstacle) & y >= y2 > y + GetWidth(obstacle)).
+    // Cars cannot overlap with obstacles
+    ! car[Car] obstacle[Obstacle] t[Time] : ~? x[XCo] y[YCo] x2[XCo] y2[YCo]: GetPos(t,obstacle) = P(x,y) & GetPos(t,car) = P(x2,y2) & (x >= x2 > x + GetWidth(obstacle) & y >= y2 > y + GetHeight(obstacle)) | (x >= x2 > x + GetHeight(obstacle) & y >= y2 > y + GetWidth(obstacle)).
     
     // Cars must exist within the bounds of the game
-    ! entity[Entity] x[XCo] y[YCo] t[Time] : GetPos(t,entity) = P(x,y)=> IsCoordinate(x + GetWidthE(entity) - 1,y - GetHeightE(entity) + 1).
+    ! car[Car] t[Time] : ? x[XCo] y[YCo] x2[XCo] y2[YCo] x3[XCo] y3[YCo] orientation[Orientation] : GetPos(t,car) = P(x2,y2) & GetOrientation(car) = orientation & (x =< x2 =< x3 & y =< y2 =< y3)  & (orientation = Hor => (x =< x2 + GetSize(car) =< x3 & y =< y2 + 1 =< y3)) & (orientation = Vert => (x =< x2 - 1 =< x3 & y =< y2 - GetSize(car) =< y3)).
     
-    // A car can move if there is no obstacle in it's way, it doesn't go out of bounds and stays in it's orientation
-    {
-        ! car[Car] distance[Distance] t[Time] : CanMove(t,car,Left,distance) <- GetOrientation(car) = Hor.
-        ! car[Car] distance[Distance] t[Time] : CanMove(t,car,Right,distance) <- GetOrientation(car) = Hor.
-    	! car[Car] distance[Distance] t[Time] : CanMove(t,car,Up,distance) <- GetOrientation(car) = Vert.
-        ! car[Car] distance[Distance] t[Time] : CanMove(t,car,Down,distance) <- GetOrientation(car) = Vert.
-    }
-        
-    // The game has ended if there is no more legal move or the player has won
-    ~? car[Car] dir[Dir] distance[Distance] t[Time] : Won(t) | CanMove(t,car,dir,distance) => GameEnded(t).
-    
-    // If all the cars are in place then the player has won
-    ! car[Car] x[XCo] y[YCo] t[Time] : GetPos(t,car) = P(x,y) & Goal(car,P(x,y)) => Won(t).
+    // Horizontal orientation results in only going left or right, vertical in up or down
+    ! car[Car] dir[Dir] distance[Distance] t[Time] : MoveAt(t, M(car,dir,distance)) & GetOrientation(car) = Hor => dir = Left | dir = Right.
+    ! car[Car] dir[Dir] distance[Distance] t[Time] : MoveAt(t, M(car,dir,distance)) & GetOrientation(car) = Vert => dir = Up | dir = Down.
     
     // Inertia
     {
-        ! entity[Entity] pos[Pos] : GetPos(Start,entity) = pos <- Init_Pos(entity) = pos.
-        ! entity[Entity] t[Time] pos[Pos] : GetPos(Next(t),entity) = pos <- C_Pos(t,entity,pos).
-        ! entity[Entity] t[Time] pos[Pos] : GetPos(Next(t),entity) = pos <- GetPos(t,entity) = pos & ~C_NPos(t,entity,pos).
+        ! entity[Entity] position[Pos] : GetPos(0,entity) = position <- Init_Pos(entity) = position.
+        ! entity[Entity] t[Time] position[Pos] : GetPos(Next(t),entity) = position <- C_Pos(t,entity,position).
+        ! entity[Entity] t[Time] position[Pos] : GetPos(Next(t),entity) = position <- GetPos(t,entity) = position & ~C_NPos(t,entity,position).
 
     }
-    
-    // Causes
-    {
-        //If the position changes, all other values are no longer it's position.
-		! t[Time] car[Car] position[Pos] position2[Pos]: C_NPos(t,car,position) <- C_Pos(t,car,position2) & position ~= position2.
-        
-        // Move in different directions
-		! t[Time] car[Car] pos[Pos] x[XCo] y[YCo] dir[Dir] distance[Distance] : C_Pos(t, car, P(x + distance,y)) <- MoveAt(t, M(car,dir,distance)) & dir=Right & GetPos(t,car)=P(x,y) & CanMove(t,car,dir,distance).
-        ! t[Time] car[Car] pos[Pos] x[XCo] y[YCo] dir[Dir] distance[Distance] : C_Pos(t, car, P(x - distance,y)) <- MoveAt(t, M(car,dir,distance)) & dir=Left & GetPos(t,car)=P(x,y) & CanMove(t,car,dir,distance).
-        ! t[Time] car[Car] pos[Pos] x[XCo] y[YCo] dir[Dir] distance[Distance] : C_Pos(t, car, P(x,y + distance)) <- MoveAt(t, M(car,dir,distance)) & dir=Up & GetPos(t,car)=P(x,y) & CanMove(t,car,dir,distance).
-        ! t[Time] car[Car] pos[Pos] x[XCo] y[YCo] dir[Dir] distance[Distance] : C_Pos(t, car, P(x,y - distance)) <- MoveAt(t, M(car,dir,distance)) & dir=Down & GetPos(t,car)=P(x,y) & CanMove(t,car,dir,distance).
-    }    
+
 }
 
 
@@ -153,7 +122,7 @@ procedure main() {
     stdoptions.groundwithbounds = false
     stdoptions.liftedunitpropagation = false
     //allVerifications()
-    interact(Easy_3by3)
+    show(Easy_3by3)
 }
 
 // Use this to visualise the structure struc
