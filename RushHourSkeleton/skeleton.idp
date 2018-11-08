@@ -73,6 +73,8 @@ LTCvocabulary RushHourVoc {
     GetWidthE(Entity):Size
     GetHeightE(Entity):Size
     IsCoordinate(XCo,YCo)
+    UpperIntersection(XCo,YCo,Size,Size,Entity)
+    LowerIntersection(XCo,YCo,Size,Size,Entity)
 }
 
 //DO NOT CHANGE THIS THEORY
@@ -104,18 +106,23 @@ theory RushHourTheory : RushHourVoc {
     ! entity[Entity] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] t[Time] : GetPos(t,entity) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & entity~=entity2 => ~(x =< x2 < x + GetWidthE(entity) & y >= y2 > y - GetHeightE(entity)).
     
     // Entities may not intersect
-    ! entity[Car] entity2[Car] x[XCo] y[YCo] x2[XCo] y2[YCo] t[Time] : GetPos(t,entity) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & entity~=entity2 => ~(x =< x2 < x + GetWidthE(entity) & y2 >= y > y2 - GetHeightE(entity2)).
+    ! entity[Entity] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] t[Time] : GetPos(t,entity) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & entity~=entity2 => ~(x =< x2 < x + GetWidthE(entity) & y2 >= y > y2 - GetHeightE(entity2)).
     
     // Cars must exist within the bounds of the game
     ! entity[Entity] x[XCo] y[YCo] t[Time] : GetPos(t,entity) = P(x,y)=> IsCoordinate(x + GetWidthE(entity) - 1,y - GetHeightE(entity) + 1).
     
     // A car can move if there is no obstacle in it's way, it doesn't go out of bounds and stays in it's orientation
     {
-        ! car[Car] distance[Distance] t[Time] : CanMove(t,car,Left,distance) <- GetOrientation(car) = Hor.
-        ! car[Car] distance[Distance] t[Time] : CanMove(t,car,Right,distance) <- GetOrientation(car) = Hor.
-    	! car[Car] distance[Distance] t[Time] : CanMove(t,car,Up,distance) <- GetOrientation(car) = Vert.
+        // Moving right
+        ! car[Car] distance[Distance] t[Time] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] : CanMove(t,car,Right,distance) <- GetOrientation(car) = Hor & GetPos(t,car) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & car~=entity2 & ! middleX[XCo] : x =< middleX =< x + distance => IsCoordinate(middleX + GetWidthE(car) - 1, y - GetHeightE(car) + 1) & IsCoordinate(middleX,y) & ~(middleX =< x2 < middleX + GetWidthE(car) & y2 >= y > y2 - GetHeightE(entity2)) &  ~(middleX =< x2 < middleX + GetWidthE(car) & y >= y2 > y - GetHeightE(car)).
+        // Moving left
+        ! car[Car] distance[Distance] t[Time] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] : CanMove(t,car,Left,distance) <- GetOrientation(car) = Hor & GetPos(t,car) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & car~=entity2 & ! middleX[XCo] : x - distance =< middleX =< x => IsCoordinate(middleX + GetWidthE(car) - 1, y - GetHeightE(car) + 1) & IsCoordinate(middleX,y) & ~(x2 =< middleX < x2 + GetWidthE(entity2) & y2 >= y > y2 - GetHeightE(entity2)) &  ~(x2 =< middleX < x2 + GetWidthE(car) & y >= y2 > y - GetHeightE(car)).
+        // Moving up
+    	! car[Car] distance[Distance] t[Time] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] : CanMove(t,car,Up,distance) <- GetOrientation(car) = Vert & GetPos(t,car) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & car~=entity2 & ! middleY[XCo] : y =< middleY =< y + distance => IsCoordinate(x + GetWidthE(car) - 1, middleY - GetHeightE(car) + 1) & IsCoordinate(x,middleY) & ~(x =< x2 < x + GetWidthE(car) & y2 >= middleY > y2 - GetHeightE(entity2)) &  ~(x =< x2 < x + GetWidthE(car) & middleY >= y2 > middleY - GetHeightE(car)).
+        // Moving down
         ! car[Car] distance[Distance] t[Time] : CanMove(t,car,Down,distance) <- GetOrientation(car) = Vert.
     }
+    // & 
         
     // The game has ended if there is no more legal move or the player has won
     ~? car[Car] dir[Dir] distance[Distance] t[Time] : Won(t) | CanMove(t,car,dir,distance) => GameEnded(t).
@@ -153,7 +160,7 @@ procedure main() {
     stdoptions.groundwithbounds = false
     stdoptions.liftedunitpropagation = false
     //allVerifications()
-    interact(Easy_3by3)
+    show(Easy_3by3)
 }
 
 // Use this to visualise the structure struc
