@@ -73,6 +73,7 @@ LTCvocabulary RushHourVoc {
     GetWidthE(Entity):Size
     GetHeightE(Entity):Size
     IsCoordinate(XCo,YCo)
+    InEntity(Time,XCo,YCo,Entity)
 }
 
 //DO NOT CHANGE THIS THEORY
@@ -97,7 +98,8 @@ theory RushHourTheory : RushHourVoc {
     ! obstacle[Obstacle] : GetWidthE(obstacle) = GetWidth(obstacle) & GetHeightE(obstacle) = GetHeight(obstacle).
     // All possible coordinates
     ! x[XCo] y[YCo] : IsCoordinate(x,y).
-    
+    // In entity
+    ! x[XCo] y[YCo] x2[XCo] y2[YCo] entity[Entity] t[Time] : InEntity(t,x,y,entity) & GetPos(t,entity) = P(x2,y2) => x2 =< x =< x2+GetWidthE(entity)-1 & y2 >= y >= y2-GetHeightE(entity)+1.
  
     // Preconditions
     // Entities may not lie in each other
@@ -150,7 +152,7 @@ theory RushHourTheory : RushHourVoc {
         ! t[Time] car[Car] pos[Pos] x[XCo] y[YCo] dir[Dir] distance[Distance] : C_Pos(t, car, P(x - distance,y)) <- MoveAt(t, M(car,dir,distance)) & dir=Left & GetPos(t,car)=P(x,y) & CanMove(t,car,dir,distance).
         ! t[Time] car[Car] pos[Pos] x[XCo] y[YCo] dir[Dir] distance[Distance] : C_Pos(t, car, P(x,y + distance)) <- MoveAt(t, M(car,dir,distance)) & dir=Up & GetPos(t,car)=P(x,y) & CanMove(t,car,dir,distance).
         ! t[Time] car[Car] pos[Pos] x[XCo] y[YCo] dir[Dir] distance[Distance] : C_Pos(t, car, P(x,y - distance)) <- MoveAt(t, M(car,dir,distance)) & dir=Down & GetPos(t,car)=P(x,y) & CanMove(t,car,dir,distance).
-    }    
+    }
 }
 
 
@@ -162,7 +164,7 @@ procedure main() {
     stdoptions.groundwithbounds = false
     stdoptions.liftedunitpropagation = false
     allVerifications()
-    //show(Easy_3by3)
+    show(Easy_3by3)
 }
 
 // Use this to visualise the structure struc
@@ -253,15 +255,29 @@ procedure verification4proc(struct) {
 //Verify that all positions that initially contain no entity are reachable from each other in any structure. You can define auxiliary predicates/functions in verification5Voc to keep your theory cleaner.
 vocabulary verification5Voc {
  	extern vocabulary RushHourVoc
-    
+    Reachable(Time,Pos,Pos)
 }
 
 theory verification5: verification5Voc {
+    {
+        // Reachable if the adjacent is reachable and can reach it
+        ! x[XCo] y[YCo] pos2[Pos] t[Time] : Reachable(t,P(x,y),pos2) <- Reachable(t,P(x,y),P(x+1,y)) & Reachable(t,P(x+1,y),pos2).
+        ! x[XCo] y[YCo] pos2[Pos] t[Time] : Reachable(t,P(x,y),pos2) <- Reachable(t,P(x,y),P(x-1,y)) & Reachable(t,P(x-1,y),pos2).
+        ! x[XCo] y[YCo] pos2[Pos] t[Time] : Reachable(t,P(x,y),pos2) <- Reachable(t,P(x,y),P(x,y+1)) & Reachable(t,P(x,y+1),pos2).
+        ! x[XCo] y[YCo] pos2[Pos] t[Time] : Reachable(t,P(x,y),pos2) <- Reachable(t,P(x,y),P(x,y-1)) & Reachable(t,P(x,y-1),pos2).
+
+    	// Adjacents are reachable if there is no entity on them
+        ! x[XCo] y[YCo] t[Time] : Reachable(t,P(x,y),P(x+1,y)) <- ~? entity[Entity] : InEntity(t,x+1,y,entity).
+        ! x[XCo] y[YCo] t[Time] : Reachable(t,P(x,y),P(x-1,y)) <- ~? entity[Entity] : InEntity(t,x-1,y,entity).
+        ! x[XCo] y[YCo] t[Time] : Reachable(t,P(x,y),P(x,y+1)) <- ~? entity[Entity] : InEntity(t,x,y+1,entity).
+        ! x[XCo] y[YCo] t[Time] : Reachable(t,P(x,y),P(x,y-1)) <- ~? entity[Entity] : InEntity(t,x,y-1,entity).
+    }
     
+    ! x[XCo] y[YCo] x2[XCo] y2[YCo] : x~=x2 & y~=y2 & (! entity[Entity] : ~InEntity(Start,x,y,entity) & ~InEntity(Start,x2,y2,entity)) => Reachable(Start,P(x,y),P(x2,y2)).
 }
 
 procedure verification5proc(struct) {
-	
+	print(isSat(verification5,struct))
 }
 
 //Verify that once the game has ended, it stays that way.
@@ -275,7 +291,7 @@ procedure verification6proc(struct) {
 
 //Verify that it is impossible to win without moving a green car.
 theory verification7: RushHourVoc {
-    ! t[Time] : Won(t) => ? t2[Time] dir[Dir] dis[Distance] : t2<t & MoveAt(t,M(green,dir,dis)).
+    ! t[Time] : Won(t) => ? t2[Time] car[Car] dir[Dir] dis[Distance] : GetColor(car)=Green & t2<t & MoveAt(t2,M(car,dir,dis)).
 }
 
 procedure verification7proc(struct) {
