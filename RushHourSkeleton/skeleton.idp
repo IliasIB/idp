@@ -102,6 +102,12 @@ theory RushHourTheory : RushHourVoc {
     ! x[XCo] y[YCo] x2[XCo] y2[YCo] entity[Entity] t[Time] : InEntity(t,x,y,entity) & GetPos(t,entity) = P(x2,y2) => x2 =< x =< x2+GetWidthE(entity)-1 & y2 >= y >= y2-GetHeightE(entity)+1.
  
     // Preconditions
+    // All cars can have at most one goal
+    ! car[Car] : #{pos[Pos] : Goal(car,pos)} < 2.
+    
+    // If cars have the same color then only one can have a goal
+    ! car[Car] car2[Car]: (? pos[Pos] : Goal(car,pos)) & (? pos[Pos] : Goal(car2,pos)) & GetColor(car)=GetColor(car2) => car=car2.
+    
     // Entities may not lie in each other
     ! entity[Entity] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] t[Time] : GetPos(t,entity) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & entity~=entity2 => ~(x =< x2 < x + GetWidthE(entity) & y >= y2 > y - GetHeightE(entity)).
     
@@ -109,7 +115,7 @@ theory RushHourTheory : RushHourVoc {
     ! entity[Entity] entity2[Entity] x[XCo] y[YCo] x2[XCo] y2[YCo] t[Time] : GetPos(t,entity) = P(x,y) & GetPos(t,entity2) = P(x2,y2) & entity~=entity2 => ~(x =< x2 < x + GetWidthE(entity) & y2 >= y > y2 - GetHeightE(entity2)).
     
     // Cars must exist within the bounds of the game
-    ! entity[Entity] x[XCo] y[YCo] t[Time] : GetPos(t,entity) = P(x,y)=> IsCoordinate(x + GetWidthE(entity) - 1,y - GetHeightE(entity) + 1).
+    ! entity[Entity] x[XCo] y[YCo] t[Time] : GetPos(t,entity) = P(x,y)=> IsCoordinate(x,y) & IsCoordinate(x + GetWidthE(entity) - 1,y - GetHeightE(entity) + 1).
         
     // A car can move if there is no obstacle in it's way, it doesn't go out of bounds and stays in it's orientation
     {
@@ -164,7 +170,7 @@ procedure main() {
     stdoptions.groundwithbounds = false
     stdoptions.liftedunitpropagation = false
     allVerifications()
-    show(Easy_3by3)
+    //interact(Easy_3by3)
 }
 
 // Use this to visualise the structure struc
@@ -210,7 +216,9 @@ theory verification1: RushHourVoc {
 }
 
 procedure verification1proc(struct) {
-	print(isSat(verification1,struct))
+    is_sat = isSat(verification1,struct)
+    print(is_sat)
+    return is_sat
 }
 
 //If the game has not ended at the start and at some other time it has ended, then the game is won at that time.
@@ -219,7 +227,9 @@ theory verification2: RushHourVoc {
 }
 
 procedure verification2proc(struct) {
-	print(isSat(verification2,struct))
+	is_sat = isSat(verification2,struct)
+    print(is_sat)
+    return is_sat
 }
 
 //When performing a move with a car and then a move inverse to this previous move (eg. first 2 squares left and then 2 squares right), the positions of all entities on the board remain unchanged. You can define auxiliary predicates/functions in verification3Voc to keep your theory cleaner.
@@ -239,7 +249,9 @@ theory verification3: verification3Voc {
 }
 
 procedure verification3proc(struct) {
-    print(isSat(verification3,struct))
+    is_sat = isSat(verification3,struct)
+    print(is_sat)
+    return is_sat
 }
 
 
@@ -249,7 +261,9 @@ theory verification4: RushHourVoc {
 }
 
 procedure verification4proc(struct) {
-	print(isSat(verification4,struct))
+	is_sat = isSat(verification4,struct)
+    print(is_sat)
+    return is_sat
 }
 
 //Verify that all positions that initially contain no entity are reachable from each other in any structure. You can define auxiliary predicates/functions in verification5Voc to keep your theory cleaner.
@@ -277,7 +291,9 @@ theory verification5: verification5Voc {
 }
 
 procedure verification5proc(struct) {
-	print(isSat(verification5,struct))
+	is_sat = isSat(verification5,struct)
+    print(is_sat)
+    return is_sat
 }
 
 //Verify that once the game has ended, it stays that way.
@@ -286,7 +302,9 @@ theory verification6: RushHourVoc {
 }
 
 procedure verification6proc(struct) {
-	print(isSat(verification6,struct))
+	is_sat = isSat(verification6,struct)
+    print(is_sat)
+    return is_sat
 }
 
 //Verify that it is impossible to win without moving a green car.
@@ -295,7 +313,9 @@ theory verification7: RushHourVoc {
 }
 
 procedure verification7proc(struct) {
-	print(isSat(verification7,struct))
+	is_sat = isSat(verification7,struct)
+    print(is_sat)
+    return is_sat
 }
 
 
