@@ -161,8 +161,8 @@ procedure main() {
     stdoptions.cpsupport = false
     stdoptions.groundwithbounds = false
     stdoptions.liftedunitpropagation = false
-    //allVerifications()
-    interact(Hardest4_4by4)
+    allVerifications()
+    //show(Easy_3by3)
 }
 
 // Use this to visualise the structure struc
@@ -204,44 +204,50 @@ procedure isSat(theo, struc) {
 
 //It is possible to win the game.
 theory verification1: RushHourVoc {
-	
+	? t[Time] : Won(t).
 }
 
 procedure verification1proc(struct) {
-	
+	print(isSat(verification1,struct))
 }
 
 //If the game has not ended at the start and at some other time it has ended, then the game is won at that time.
 theory verification2: RushHourVoc {
-    
+    ! t[Time] : ~GameEnded(Start) & GameEnded(t) & t~=Start => Won(t).
 }
 
 procedure verification2proc(struct) {
-	
+	print(isSat(verification2,struct))
 }
 
 //When performing a move with a car and then a move inverse to this previous move (eg. first 2 squares left and then 2 squares right), the positions of all entities on the board remain unchanged. You can define auxiliary predicates/functions in verification3Voc to keep your theory cleaner.
 vocabulary verification3Voc {
  	extern vocabulary RushHourVoc
-    
+    Inverse(Move):Move
 }
 
 theory verification3: verification3Voc {
-	
+    // Inverse directions
+    ! car[Car] dist[Distance] : Inverse(M(car,Left,dist))=M(car,Right,dist).
+    ! car[Car] dist[Distance] : Inverse(M(car,Right,dist))=M(car,Left,dist).
+    ! car[Car] dist[Distance] : Inverse(M(car,Up,dist))=M(car,Down,dist).
+    ! car[Car] dist[Distance] : Inverse(M(car,Down,dist))=M(car,Up,dist).
+    
+    ! car[Car] dir[Dir] dist[Distance] t[Time] : MoveAt(t,M(car,dir,dist)) & MoveAt(t+1,Inverse(M(car,dir,dist))) => ! entity[Entity]: GetPos(t,entity)=GetPos(t+1,entity).
 }
 
 procedure verification3proc(struct) {
-    
+    print(isSat(verification3,struct))
 }
 
 
 //Check that the game is winnable in exactly 4 moves
 theory verification4: RushHourVoc {
-    
+    Won(4).
 }
 
 procedure verification4proc(struct) {
-	
+	print(isSat(verification4,struct))
 }
 
 //Verify that all positions that initially contain no entity are reachable from each other in any structure. You can define auxiliary predicates/functions in verification5Voc to keep your theory cleaner.
@@ -260,20 +266,20 @@ procedure verification5proc(struct) {
 
 //Verify that once the game has ended, it stays that way.
 theory verification6: RushHourVoc {
-    
+    ! t[Time] t2[Time] : GameEnded(t) & t2>t => GameEnded(t2).
 }
 
 procedure verification6proc(struct) {
-	
+	print(isSat(verification6,struct))
 }
 
 //Verify that it is impossible to win without moving a green car.
 theory verification7: RushHourVoc {
-    
+    ! t[Time] : Won(t) => ? t2[Time] dir[Dir] dis[Distance] : t2<t & MoveAt(t,M(green,dir,dis)).
 }
 
 procedure verification7proc(struct) {
-	
+	print(isSat(verification7,struct))
 }
 
 
